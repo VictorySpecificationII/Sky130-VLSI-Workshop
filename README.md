@@ -22,12 +22,21 @@ The first day covers the basics of RTL Design, Testbench, Simulation and Synthes
 ## 1 - Setting up the environment.
 The first step is cloning the vsdflow and sky130RTLDesignAndSynthesisWorkshop repositories from Kunal's profile, we can get to work.
 
+![alt text](https://raw.githubusercontent.com/VictorySpecificationII/Sky130-VLSI-Workshop/master/Images/Day1/1%20-%20cloning%20repos.JPG?raw=true)
+
 
 ## 2 - Performing Simulations and Verification.
 In order to validate a design, we need to have 
 
 1. Written the design
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/2%20-%20good%20mux%20verilog.JPG?raw=true)
+
+
+
 2. Written the stimulus file.
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/3%20-%20good%20mux%20tb.JPG?raw=true)
 
 The labs provide us with a multiplexer design and it's corresponding test bench.
 
@@ -37,6 +46,8 @@ The labs provide us with a multiplexer design and it's corresponding test bench.
 The simulator checks whether the design adheres to the specification set out by the customer.
 
 The design will be tested using the stimulus file, and the simulator looks for changes in the input signals. As the input changes, <br/>the output is evaluated; I the event that there is no change in the input signals, there is no change in the output.
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/4%20-%20iverilog%20sim%20and%20gtkwave.JPG?raw=true)
 
 #### The Test Bench 
 
@@ -50,9 +61,17 @@ The design and testbench are fed into iverilog sim, whichg will look for changes
 
 GTKWave is fed the vcd so we can see the changes in the output as the input changes.
 
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/5%20-%20gtkwave%20window.JPG?raw=true)
+
 ### Yosys
 
 Yosys is the synthesizer, which converts RTL to netlists.
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/6%20-%20yosys%20entry.JPG?raw=true)
+
+
+
 
 Just as iverilog takes a design and its stimulus, yosys takes a design and it's library file and outputs a netlist.
 
@@ -125,11 +144,41 @@ Overall chip speed depends on a combination of slow, medium and fast cells which
 
 #### Steps:
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 -Read library file<br/>
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/7%20-%20import%20lib.JPG?raw=true)
+
 -Read verilog design<br/>
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/8%20-%20read%20verilog.JPG?raw=true)
+
 -Pinpoint top-level module<br/>
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/9%20-%20synth%20top.JPG?raw=true)
+
 -Convert RTL to netlist<br/>
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/10%20-%20box%20IO%20and%20components.JPG?raw=true)
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/11%20-%20total%20inventory.JPG?raw=true)
+
 -Show netlist<br/>
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day1/12%20-%20yosys%20logic.JPG?raw=true)
+
+
 -Write converted RTL to file<br/>
 
 #### Commands:
@@ -144,6 +193,8 @@ yosys> abc -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
 
 yosys> show                                     
 
+
+# Day 2 - PLACEHOLDER
 
 
 
