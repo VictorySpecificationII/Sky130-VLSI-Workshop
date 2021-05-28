@@ -91,7 +91,7 @@ RTL is written verilog, and is the behavioural representation of the specificati
 We need to perform RTL to gate-level translation,  for the design to be converted to gates and connections between those gates<br/> to be made. The output is called the netlist.
 
 
-RTL + .lib -> synthesize to digital circuti
+RTL + .lib -> synthesize to digital circuit.
 
 As mentioned before, a .lib file is collection of logical modules; NOT AND OR NAND NOR etc, and contains slow, medium, <br/>and fast versions of different cells.
 
@@ -125,17 +125,17 @@ We use faster cells to meet setup times, and slower cells to meet hold times.
 #### Faster vs Slower cells - A deeper look
 
 
-The propagation delay is the time for the input to cause a change in the output across a logic cell e.g inverter.
+The propagation delay is the time for the input to cause a change in the output across a logic cell e.g inverter.<br/>
 
-A load in digital circuit is capacitance, and cell delay depends on charging rate of the capacitance.
+A load in digital circuit is capacitance, and cell delay depends on charging rate of the capacitance.<br/>
 
-The faster the charge / discharge, the higher the current, the lower the delay.
+The faster the charge / discharge, the higher the current, the lower the delay.<br/>
 
-Wider transistors - higher current, higher area, higher power.
-Narrower transistors - lower current, lower area, lower power.
+Wider transistors - higher current, higher area, higher power.<br/>
+Narrower transistors - lower current, lower area, lower power.<br/>
 
-Wider - faster because of lower delay
-Narrower - slower because of higher delay
+Wider - faster because of lower delay<br/>
+Narrower - slower because of higher delay<br/>
 
 Overall chip speed depends on a combination of slow, medium and fast cells which contribute to it's overall area, power <br/>and current draw characteristics.
 
