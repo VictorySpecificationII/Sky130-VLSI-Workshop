@@ -380,61 +380,48 @@ Some times we wil require module level synthesis as opposed to an entire desing.
 # 3 - Flops
 
 
-how to code a flop
-
-what are we trying to do
-
-why flops?
-
-a combinational circuit, given a set of inputs, after a propagation delay, th output is going to change
-because of delay, output is going to glitch
+A combinational circuit, given a set of inputs, after a propagation delay, the output is going to change.<br/> Because of the propagation delay, the output is going to glitch, it will be unstable.
 
 e.g 3 inputs
 
-a goes 0 to 1
-b goes 0 to 1
-output i0 is the result of a&b
+2-Input AND gate
+ - a goes 0 to 1
+ - b goes 0 to 1
+ - output i0 is the result of a&b
 
 
-c goes 1 to 0
-output y is the result of i0 | c
+2-Input OR gate
+ - c goes 1 to 0
+ - output y is the result of i0 | c
 
 
-it happens simultaneously
+Input and output swithcing happens simultaneously.
 
-when c goes low, or gate sees it
+When input C goes low, the OR gate sees it.
 
-at the output y, because of the propagation delay of the and gate, the result will be shifted to the right, it won't happen at the exact same time as the inputs changing logical states
+At the same time, at the output y, because of the propagation delay of the AND gate, the result as seen in the wave form will be <br/> shifted to the right, it won't happen at the exact same time as the inputs changing logical states.
 
-during the process of the combinatorial circuit switching, we get time intervals where if the output is not the desired value as the logical expression is still in the process of being evaluated. this is called a glitch
+------------------------
 
-glitches happen.
+During the process of the combinatorial circuit switching, we get time intervals where if the output is not the desired value as the <br/> logical expression is still in the process of being evaluated. This is called a glitch. Glitches happen.The more combi circuits exist, <br/>the more more outputs will be glitchy. Daisy chaining combi circuits, outputs will never settle down and we want to avoid that, <br/>so we use flops in between kind of like buffers/storage elements to hold the values (Either logical 1 or logical 0).
 
-more combi circuits, more outputs will be glitchy
+Flops restrict glitches as the outputs change only on the edges of the clock, giving the circuit stability as while the output of the combi <br/>  circuit glitches, the flop retains stable values for the next stages which we need for the circuit to function correctly. We need to init <br/> the flops else the circuit will have garbage outputs, hence the reset or set pins on the flops.
 
-daisy chaining combi circuits, outpus will never settle down and we want to avoid that, so we use flops in between kind of like buffers/storage elements
+ - Set and Reset - they can be synchronous or asynchronous.
 
-flops restrict glitches as the outputs change only on the edges of the clock, giving the circuit stability as while the output of the combi circuit glitches, the flop retains stable values for the next stages which we need for the thing to function correctly
+ - Flip-flops can be triggered at a positive or negative clock edge.
 
-we need to init the flops else the circuit will have garbage outputs, hence the reset or set pins on the flops
+ - Async reset: flop can reset irrespecctive of the edge of the clock (+/-)
+ - Sync reset: flop resets at a predetermined edge (+/-)
 
-set and reset - they can be sync or async
+ - In the sensitivity list for a async flop, we have the clock asnd the async set/reset triggers.
+ - In the sensitivity list for a sync flop, we have the clock trigger only.
+
+For the flop with both sync and async reset, the if statement is only evaluated when the trigger async_reset <br/> in the sensitivity list is triggered. The else if and else are evaluated at the edge of the clock.
 
 
-flip flops can be triggered at a pos or neg clock edge
 
-async reset: flop can reset irrespecctive of the edge of the clock (+/-)
-sync reset: flop resets at a predetermined edge (+/-)
-
-in the sensitivity list for a async flop, we have the clock asnd the async set/reset triggers
-in the sensitivity list for a sync flop, we have the clock trigger only
-
-for the flop with both sync and async, the if statement is only evaluated when the trigger async_reset in the sensitivity list is triggered
-the else if and else are evaluated at the edge of the clock
-
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-simulations for flops
+## Flip-Flop Simulations
 
 yosys
 
@@ -462,6 +449,8 @@ since we are using dff flip flops use the below command so yosys knows only to l
 dfflibmap -liberty <path to lib file containing dff info>
 abc -liberty <path to lib> - convert logic to netlist using the spec'd lib file
 show - show rsuls
+
+
 
 
 
