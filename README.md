@@ -428,7 +428,7 @@ The above is a simulation of a flip flop with an asynchronous reset. Upon closer
 
 
 
-![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/24%20-%20asyncres%20sim.JPG?raw=true)<br/>
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/30%20-%20asyncres%20syncres.JPG?raw=true)<br/>
 The above is a simulation of a flip flop with an asynchronous and a synchronous reset. Upon closer inspection of the waveform, <br/>we notice that changes at the d pin  arefelt at the q pin at clock edge. As long as async reset is one, q stays at one, when it goes 0,<br/> q now depends on and follows the clock edge
 as soon as set goes back to one, q locks at one irrespective of the clock.
 
