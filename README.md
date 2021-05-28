@@ -376,7 +376,6 @@ Some times we wil require module level synthesis as opposed to an entire desing.
    - We give smaller portions for it to make a better job
    - Then merge netlists at the top level to get a better design
 
-
 # 3 - Flops
 
 
@@ -423,32 +422,49 @@ For the flop with both sync and async reset, the if statement is only evaluated 
 
 ## Flip-Flop Simulations
 
-yosys
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/24%20-%20asyncres%20sim.JPG?raw=true)<br/>
+The above is a simulation of a flip flop with an asynchronous reset. Upon closer inspection of the waveform, we notice that d may come at any point, however q changes only at the clock edge.
 
 
 
-asyncres
-d may come at any point
-q changes only at the clock edge
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/24%20-%20asyncres%20sim.JPG?raw=true)<br/>
+The above is a simulation of a flip flop with an asynchronous and a synchronous reset. Upon closer inspection of the waveform, <br/>we notice that changes at the d pin  arefelt at the q pin at clock edge. As long as async reset is one, q stays at one, when it goes 0,<br/> q now depends on and follows the clock edge
+as soon as set goes back to one, q locks at one irrespective of the clock.
 
-asyncset
-changes at the d pin felt at the q pin at clock edge
-as long as async set is one, q stays at one, when it goes 0, q now depends on and follows the clock edge
-as soon as set goes back to one, q locks at one irrespective of the clock
 
-sync reset
-sync reset goes high, q waits for the next clock edge to go low
-reset and d are present, reset gets higher precedence cause of how we've coded the flop
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/26%20syncres.JPG?raw=true)<br/>
 
-read_liberty -lib <path to lib file>
-read verilog <name of design>.v 
-synth -top <name of design printed on the terminal>
-since we are using dff flip flops use the below command so yosys knows only to look for dff's
-dfflibmap -liberty <path to lib file containing dff info>
-abc -liberty <path to lib> - convert logic to netlist using the spec'd lib file
-show - show rsuls
+The above is a simulation of a flip flop with a synchronous reset. Upon closer inspection of the waveform, we notice that when sync <br/>reset goes high, q waits for the next clock edge to go low. Reset and d signals are present, reset gets higher precedence <br/>because of how we've coded the flop.
+
+
+
+
+
+------
+
+The commands for synthesizing the DFF's are the same as the other modules above, bar for the dfflibmap command which <br/> links or maps the library files that contain the features of the flops to be used.
+
+yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib           
+
+yosys> read_verilog dff_asyncres.v                                                     
+
+yosys> synth -top dff_asyncres                                                         
+
+yosys> dfflibmap -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib                    
+
+yosys> show 
+
+In the implementation of the flip flop below, the reset is an active high. Yosys has turned it into an active low and has added an inverter.
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/28%20-%20ansycres%20dff%20yosys%20show.JPG?raw=true)<br/>
+
+
+
 
 
 
