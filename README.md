@@ -466,6 +466,115 @@ In the implementation of the flip flop below, the reset is an active high. Yosys
 
 
 
+# Day 3 - Combinatorial and Sequential Optimizations
+
+There are two types of logic, combinational and sequential. The reason that we need to perform optimizations to the logic is<br/> to get the best design in terms of area and power savings. There exist a number of different basic and advanced <br/>optimization techniques, however we cover constant propagation as well as boolean logic optimization here.
+
+## Constant Propagation
+
+This is a sequential logic optimization.
+
+For some input values, a boolean expression can be reduced to a simpler expression.
+
+e.g AND + NOR gate, output of AND feeds into input of NOR, C is NOR input number 2 for a total of 6 MOS transistors. <br/>
+		
+e.g y = ~((A*B)+C)
+
+if A = 0
+
+Y=~((0)+C) => Y = ~C
+
+So for A = 0 this can be reduced from a 2 gate assembly to a single inverter for a total of 2 MOS transistors.
+
+
+## Sequential Constant
+
+Imagining a D flip-flop, with it's input tied low, and a reset line connected to it. Every flop with D tied off is not a sequential<br/> constant, for the flop to become sequential constant, the q pin must always take constant value.
+
+ - If the flop is a reset flop, it's sequential constant.
+ - If the flop is a set flop, it's not sequential constant - q can be either 0 or 1 <br/>depending on set or clk pins.
+
+
+## Boolean Logic Optimization
+
+Can be performed using K-maps and Quine McKluskey, and information can be found online for them.
+
+## Examples
+
+Here, we will take a look at a few modules from the lab to show the optimizations.
+
+File opt_check.v has the following structure;
+
+
+module opt_check (input a , input b , output y);<br/>
+	assign y = a?b:0;<br/>
+endmodule<br/>
+
+
+It is a 2:1 mux assigning , when a is 1, it will assign b - else it will assign 0.<br/>
+
+
+
+  yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib<br/>
+  yosys> read_verilog opt_check.v<br/>
+  yosys> synth -top opt_check<br/>
+  yosys> opt_clean -purge // command to perform constant propagation and optimization<br/>
+  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib<br/>
+  yosys> show<br/>
+  
+After optimization, Yosys simplifies it down to an AND gate as seen below.
+<br/>
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day3/1%20-%20opt_check.JPG?raw=true)<br/>
+
+
+---------
+
+Opt_check3 has the following structure;
+
+module opt_check3 (input a , input b, input c , output y);<br/>
+	assign y = a?(c?b:0):0;<br/>
+endmodule<br/>
+
+
+Example 2: opt_check3 works by assigning y depending on the value of a;
+ - if a is 0 then assign 0
+ -if a is one then look at c
+  - if c is 1, assign b
+  - else assign 0
+  
+  
+
+
+  yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib<br/>
+  yosys> read_verilog opt_check3.v<br/>
+  yosys> synth -top opt_check3<br/>
+  yosys> opt_clean -purge // command to perform constant propagation and optimization<br/>
+  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib<br/>
+  yosys> show<br/>
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day3/3%20-%20opt_check3.JPG?raw=true)<br/>
+
+
+
+
+Following the same steps for the other designs, for dff_const3, we get the following optimization.
+  
+  
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day3/12%20-%20synth%20dff_onst3.JPG?raw=true)<br/>
+
+
+MORAL: Sequential optimizations; not every flop that has a constant at the input is getting optimized, we need to look at<br/> the set/reset connections and see if q is getting a constant value or changing.
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day3/6%20-%20multiple%20module%20opt2.JPG?raw=true)<br/>
+
+Above is the Yosys synthesis of the multiple_modules_2 design. From this picture, it's evident that logic not related to <br/>primary output wil still be optimized, as is th case for U1, U2, and U3.
+
+
+
 
 
 
