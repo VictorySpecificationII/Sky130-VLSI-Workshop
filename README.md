@@ -573,6 +573,235 @@ MORAL: Sequential optimizations; not every flop that has a constant at the input
 
 Above is the Yosys synthesis of the multiple_modules_2 design. From this picture, it's evident that logic not related to <br/>primary output wil still be optimized, as is th case for U1, U2, and U3.
 
+# 4 Gate Level Simulation, Blocking vs Non-Blocking Assignments, Synthesis-SImulation Mismatch
+
+At first, we simulated RTL + stimulus. Now, we simulated netlist + stimulus.Logically, it follows that RTL and netlist <br/>are logically same, and that we ca nuse the same test bench for both.
+
+We run GLS in order to;
+ - Verify logical correctness after synthesis
+ - Ensure timings are met
+ 
+
+# Synthesis-Simulation Mismatch
+
+Above, we mentioned that GLS is used to verify logical correctness and timing. Gate level verilog models can be
+ - Timing aware - We can validate functionality and timing too
+ - Functional - We can validate functionality only
+
+Why do i need to verify my netlist?
+
+
+Because of Synthesis-Simulation Mismatch. It can happen because of;
+
+ - Missing sensitivity list
+
+   - The simulator works on  activity: only when input changes output will change.<br/>
+   - Always block only evaluates when inputs in it's arguments list change state.
+
+At synthesis, the synthesizer does not look at sensitivity lists and might create wrong components<br/>
+	so you end up with a simulation and synthesized netlist that don't match
+
+
+## Blocking / Non-Blocking assignments
+
+
+Before we dive into this, it's worth to note that both statement are always inside always blocks.
+
+
+Non blocking statements
+ - Executes RHS when always block is entered and assigns to LHS
+ - Evaluates in parallel
+
+Blocking statements
+
+ - Executes sequentially, in the order its written
+
+ - Caveat 1: order matters
+
+e.g 
+	    
+	    q = q0
+		q0 = d
+
+when evaluated, we end up with 2 flops.
+
+but 
+	    q0 = q
+		d = q0
+
+when evaluated, we end up with 1 flop.
+
+
+example 1 has continuity, 2 does not - THIS MATTERS.
+
+If we use non blocking assignments,	order doesn't matter at all like it does above.
+
+MORAL: use non blocking assignments for writing sequential circuits.
+
+ - Caveat 2: this will cause Synthesis-Simulation Mismatch
+
+	   reg q0;
+
+	   always @ (*)
+
+	      y = q0 & c;
+	      q0 = a | b;
+
+Every time we enter the always block, q0's value is equal to the value it held in the previous execution cycle. <br/>So, it will calculate and return the wrong value on every subsequent execution.
+	
+	
+
+ y = q0 & c will mimic a flop. When synthesized, there will be no flop. If we switch the order;
+
+
+	       q0 = a | b;
+	       y = q0 & c;
+
+then y = q0 & c will be evaluated using the this cycle's value for q0.
+
+This is another reason why we need to run GLS on the netlist and match behaviour with expected outputs.
+
+------------------------------------------------------
+
+## Missing Sensitivity List Synthesis/Simulation Mismatch
+
+This lab shows a mux that is coded to function properly, below we see the simulation waveforms.
+
+     iverilog ternary_operator_mux.v tb_ternary_operator_mux.v
+     ./a.out
+     gtkwave tb_ternary_operator_mux.vcd	
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/1%20-%20ternary%20mux%20sim.JPG?raw=true)<br/>
+
+
+
+
+We perform synthesis of the design;
+
+    yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> read_verilog ternary_operator_mux.v
+    yosys> synth -top ternary_operator_mux
+    yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> write_verilog -noattr ternary_operator_mux_net.v
+    yosys> show
+  
+  
+ ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/2%20-%20ternary%20operator%20mux%20yosys.JPG?raw=true)<br/>
+
+  Steps to do GLS:
+
+    iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky_fd_sc_hd.v ternary_operator_mux_net.v tb_ternary_operator_mux.v
+    ./a.out
+    gtkwave tb_ternary_operator_mux.vcd
+    
+We need to invoke the two extra files during the simulation phase.
+
+opening gtkwave, next to the uut, we see an expand symbol. This is how we know this is the netlist simulation,<br/> there exists no such thing in RTL simulations.
+
+
+ ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/3%20-%20netlist%20ternary%20sim.JPG?raw=true)<br/>
+ 
+The demonstration below will show the mismatch between synthesis and simulation. We use the file bad_mux.v
+
+
+    iverilog bad_mux.v tb_bad_mux.v
+    ./a.out
+    gtkwave tb_ternary_operator_mux.vcd	
+
+ ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/4%20-%20bad%20mux%20sim%20rtl.JPG?raw=true)<br/>
+ This is the RTL simulation.
+
+
+We see that only when the select line is triggered there is a change to select, in that case only when select goes high, <br/>y takes the current value of i1.
+
+Synthesizing and writing to file for GLS.
+
+    yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> read_verilog bad_mux.v
+    yosys> synth -top bad_mux
+    yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> write_verilog -noattr bad_mux_net.v
+    yosys> show
+    
+Performing GLS:
+
+     iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky_fd_sc_hd.v bad_mux_net.v tb_bad_mux.v
+     ./a.out
+     gtkwave tb_bad_mux.vcd
+     
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/5%20-%204%20and%205%20are%20sim%20synth%20mismatch%2C%20this%20pic%20is%20netlist%20bad%20mux%2C%204%20is%20rtl%20bad%20mux.JPG?raw=true)<br/>
+This is the GLS.
+
+
+It is evident, by looking at the RTL sim and the GLS that they differ, in the former output y is not following i0 when select is 0. 
+
+This is what a missing sensitivity list will do. When not sure, use always @(*), which means that the always block will be <br/>evaluated whenever any signal changes.
+
+----------------------------------------------
+
+## Non-Blocking vs Blocking Synthesis-Simulation Mismatch
+
+As mentioned earlier, mismatches can occur because of gaps in logic layout.
+
+Example:
+
+    d = x&c
+    x = a|b
+
+
+A is low.<br>
+B is low.<br>
+X is low.<br>
+
+and with C, output should be 0.
+
+But: a|b is evaluated using the value it was assigned from the last round of execution, and  is ANDed with current execution round<br/> C value. That's why the result of the calculation will be wrong. X will look like a floped output in simulation.
+
+
+Lab: Using blocking_caveat.v module in the labs for simulation.
+
+    iverilog blocking_caveat.v tb_blocking_caveat.v
+    ./a.out
+    gtkwave tb_blocking_caveat.vcd	
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/6%20-%20blocking%20caveat%20rtl%20sim.JPG?raw=true)<br/>
+
+This is what the RTL simulation looks like for the blocking_caveat.v module.
+
+
+Synthesizing;
+
+    yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> read_verilog blocking_caveat.v
+    yosys> synth -top blocking_caveat
+    yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> write_verilog -noattr blocking_caveat_net.v
+    yosys> show
+    
+    
+    
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/7%20-%20blocking%20caveat%20yosys%20synth.JPG?raw=true)<br/>
+    
+
+
+Performing GLS;
+
+    iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky_fd_sc_hd.v blocking_caveat_net.v tb_blocking_caveat.v
+    ./a.out
+    gtkwave tb_blocking_caveat_net.vcd
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/8%20-%20blocking%20caveat%20netlist%20sim.JPG?raw=true)<br/>
+
+Observations;
+ - In RTL Simulation; when A is low, B is low, output is low
+ - In Gate Level Simulation; A is low, B is low, output is high
+
+Why? 
+ - Because it's looking at the past value
+
+Blocking statements are something to be careful with, if you have to use it, proceed with care.
+
 
 
 
