@@ -4,25 +4,32 @@
 
 ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/VSD/vsdbanner.png?raw=true)
 
-### Project Scope
+### Overview
 
 The workshop format comprises of hardware design in Verilog and follow along labs hosted by VSD-IAT on the cloud.  
 
-The first day begins with an intro to digital design, and continues to illustrate various digital design steps such as simulation, <br/>validation by using a test bench (or stimulus file) in iverilog and logic Synthesis by using Yosys along with Sky's .lib file <br/>containing their cells and cells' features.
+Throughout the five days, the workshop dives into a number of different concepts;
 
-The second day continues with learning about Hierarchical vs Flat design, learning about flops, synchronous and asynchronous <br/>operation, alongside the techniques used in synthesis to account for phenomena such as stacked P-MOS vs stacked N-MOS.<br/> It further delves into hardware optimizations.
+
+ - Day 1 - Introduction to Verilog RTL design and Synthesis
+ - Day 2 - Timing libs, hierarchical vs flat synthesis and efficient flop coding styles
+ - Day 3 - Combinational and sequential optmizations
+ - Day 4 - GLS, blocking vs non-blocking and Synthesis-Simulation mismatch
+ - Day 5 - If, case, for loop and for generate
+
 
 
 ### Getting Started
 
-You need one VM, preferrably running ubuntu, along with Kunal's vsdflow script which installs the necessary<br/> software stack; iVerilog for simulation, Yosys for synthesis, qRouter for routing.The workshop assumes some degree <br/>of basic familiarity with the Verilog Hardware Description Language, o if you don't know Verilog, this might not be <br/>the best place to start.
+You need one VM, preferrably running Ubuntu, along with Kunal's vsdflow script which installs the necessary<br/> software stack; iVerilog for simulation, Yosys for synthesis, qRouter for routing.The workshop assumes some degree <br/>of basic familiarity with the Verilog Hardware Description Language, o if you don't know Verilog, this might not be <br/>the best place to start.
+
 
 # Day 1 - Introduction to Verilog RTL Design and Synthesis
 
 The first day covers the basics of RTL Design, Testbench, Simulation and Synthesis. The labs provide the simulator (iVerilog) <br/>and synthesis (Yosys) tools for experimentation.
 
 ## 1 - Setting up the environment.
-The first step is cloning the vsdflow and sky130RTLDesignAndSynthesisWorkshop repositories from Kunal's profile, we can get to work.
+The first step is cloning the [vsdflow](https://github.com/kunalg123/vsdflow) and [sky130RTLDesignAndSynthesisWorkshop](https://github.com/kunalg123/sky130RTLDesignAndSynthesisWorkshop) repositories from Kunal's profile, we can get to work.
 
 ![alt text](https://raw.githubusercontent.com/VictorySpecificationII/Sky130-VLSI-Workshop/master/Images/Day1/1%20-%20cloning%20repos.JPG?raw=true)
 
@@ -574,7 +581,7 @@ MORAL: Sequential optimizations; not every flop that has a constant at the input
 Above is the Yosys synthesis of the multiple_modules_2 design. From this picture, it's evident that logic not related to <br/>primary output wil still be optimized, as is th case for U1, U2, and U3.
 
 
-# 4 Gate Level Simulation, Blocking vs Non-Blocking Assignments, Synthesis-SImulation Mismatch
+# 4 - Gate Level Simulation, Blocking vs Non-Blocking Assignments, Synthesis-SImulation Mismatch
 
 At first, we simulated RTL + stimulus. Now, we simulated netlist + stimulus.Logically, it follows that RTL and netlist <br/>are logically same, and that we ca nuse the same test bench for both.
 
@@ -1352,6 +1359,6 @@ Performing GLS:
 # Acknowledgements
 
 
- - Kunal Ghosh
- - VSD-IAT
+ - [Kunal Ghosh](https://github.com/kunalg123?tab=repositories)
+ - [VSD-IAT](https://vsdiat.com/)
  
