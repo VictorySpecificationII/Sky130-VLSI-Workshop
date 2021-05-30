@@ -2,6 +2,8 @@
 ## Workshop, 26-30th May 2021
 
 
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/VSD/vsdbanner.png?raw=true)
+
 ### Project Scope
 
 The workshop format comprises of hardware design in Verilog and follow along labs hosted by VSD-IAT on the cloud.  
@@ -464,8 +466,6 @@ In the implementation of the flip flop below, the reset is an active high. Yosys
 ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day2/28%20-%20ansycres%20dff%20yosys%20show.JPG?raw=true)<br/>
 
 
-
-
 # Day 3 - Combinatorial and Sequential Optimizations
 
 There are two types of logic, combinational and sequential. The reason that we need to perform optimizations to the logic is<br/> to get the best design in terms of area and power savings. There exist a number of different basic and advanced <br/>optimization techniques, however we cover constant propagation as well as boolean logic optimization here.
@@ -572,6 +572,7 @@ MORAL: Sequential optimizations; not every flop that has a constant at the input
 ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day3/6%20-%20multiple%20module%20opt2.JPG?raw=true)<br/>
 
 Above is the Yosys synthesis of the multiple_modules_2 design. From this picture, it's evident that logic not related to <br/>primary output wil still be optimized, as is th case for U1, U2, and U3.
+
 
 # 4 Gate Level Simulation, Blocking vs Non-Blocking Assignments, Synthesis-SImulation Mismatch
 
@@ -782,7 +783,7 @@ Synthesizing;
     
 ![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day4/7%20-%20blocking%20caveat%20yosys%20synth.JPG?raw=true)<br/>
     
-
+ 
 
 Performing GLS;
 
@@ -801,6 +802,7 @@ Why?
  - Because it's looking at the past value
 
 Blocking statements are something to be careful with, if you have to use it, proceed with care.
+
 
 # Day 5 - If, Case, For loop, For Generate
 
@@ -927,468 +929,424 @@ It is not a problem with if because it exits at a matched condition.
 -----------------------------
 
 
-
- 	labs
- 	if always translates to a mux
-
-    incomplete if example
-
- 	module incomp_if (input i0 , input i1 , input i2 , output reg y);
-always @ (*)
-begin
-	if(i0)
-		y <= i1;
-end
-endmodule
+### Lab: Incomplete if
 
 
-this translates into a mux with i0 as the select signal, i1 as one of the inputs, and y as the output - the second input is connected to from the output - essentially a D latch
+The following snippet is taken from the labs and describes an incomplete if situation;
+
+     module incomp_if (input i0 , input i1 , input i2 , output reg y);
+       always @ (*)
+       begin
+	     if(i0)
+		    y <= i1;
+       end
+     endmodule
 
 
 
-iverilog incomp_if.v tb_incomp_if.v
-./a.out
-gtkwave tb_incomp_if.vcd
-
-pic of rtl sim
-
-when our i0 goes low, y latches on to something. no change in y wheneve i0 is low
-y depends on the value of i1 as i0 goes low, so if i1 is 1 when i0 goes low, the output latches to 1, same with 0
-
-this is what happens with an incomplete if
-
-
-synth
-
-yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> read_verilog incomp_if.v
-  yosys> synth -top tb_incomp_if
-  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> show
-
-
-pic of yosys show
+ 	
+ - An if always translates to a mux
 
 
 
-we tried coding it as a mux but the inomplete if caused yosys to give us a latch, this is an inferred latch
+This translates into a mux with 
+ - i0 as the select signal 
+ - i1 as one of the inputs
+ - y as the output
+ - the second input is connected to from the output
+ 
+ 
+It essentially is a D latch.
 
+
+Performing an RTL simulation:
+
+     iverilog incomp_if.v tb_incomp_if.v
+     ./a.out
+     gtkwave tb_incomp_if.vcd
+     
+     
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/1%20-%20incomp%20if%20rtl%20sim.JPG?raw=true)
+
+     
+We can see that when our i0 goes low, y latches on to something. There is no change in y whenever i0 is low.<br/>
+y depends on the value of i1 as i0 goes low, so if i1 is 1 when i0 goes low, the output latches to 1. <br/>The same happens when i1 is 0.
+
+This is what happens with an incomplete if.
+
+
+Synthesizing the design;
+
+
+
+    yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> read_verilog incomp_if.v
+    yosys> synth -top tb_incomp_if
+    yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> show
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/2%20-%20incomp%20if%20yosys.JPG?raw=true)
+
+
+We tried coding it as a mux but the incomplete if caveat caused Yosys to synthesize it using a latch, this is an inferred latch.
+
+
+Below is the RTL simulation and Yosys synthesis using the incomp_if2.v file.
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/3%20-%20incomp%20if2%20rtl.JPG?raw=true)
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/4%20-%20incomp%20if2%20yosys.JPG?raw=true)
+
+We see that without the else clause, it causes Yosys to synthesize using a latch.
 
 
 -------------------------------
 
+### Lab: Incomplete Case
 
-lab2
-
-module incomp_if2 (input i0 , input i1 , input i2 , input i3, output reg y);
-always @ (*)
-begin
-	if(i0)
-		y <= i1;
-	else if (i2)
-		y <= i3;
-
-end
-endmodule
-
-
-a mux w/ i0 as a selet line
-output is y
-input i1
-else goes to another mux
-that mux has select i2
-thta mux has input i3
-that mux 2nd input is conected to y
-
-
-iverilog incomp_if.v tb_incomp_if2.v
-./a.out
-gtkwave tb_incomp_if2.vcd
-
-pic of rtl sim
-
-whenever i0 is high, output follows i1
-whenever i0 is low, output follows i2, output is constant
-when i2 is high, output follows i3
-whenever i2 is low and i3 is high it follows i3
+Below, the code snippet describes an incomplete case;
 
 
 
-synth
-
-
-yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> read_verilog incomp_if2.v
-  yosys> synth -top tb_incomp_if2
-  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> show
-
-  pi of yosys show
-
-  we were going for 2 muxes, this is how this can cause undesied behaviour
-
-
-  --------------------------------------
-
-
-case statement translates into a mux
-
-module incomp_case (input i0 , input i1 , input i2 , input [1:0] sel, output reg y);
-always @ (*)
-begin
-	case(sel)
+    module incomp_case (input i0 , input i1 , input i2 , input [1:0] sel, output reg y);
+     always @ (*)
+      begin
+	   case(sel)
 		2'b00 : y = i0;
 		2'b01 : y = i1;
-	endcase
-end
-endmodule
+	   endcase
+      end
+    endmodule
 
 
-no default statement coded so it's going to latch 
+There is no default statement coded so it's going to latch.
+
+Just like an if statement, a case statement also translates into a mux.
 
 
-rtl sim
+Performing an RTL simulation;
 
-iverilog incomp_case.v tb_incomp_case.v
-./a.out
-gtkwave tb_incomp_case.vcd
+    iverilog incomp_case.v tb_incomp_case.v
+    ./a.out
+    gtkwave tb_incomp_case.vcd
 
-pic of rtl sim
-
-2 bit sel
-when sel 00, y folows i0
-when sel 01, follows i1
-when sel 10 or 11, y latches to the value it had before
-
-synth
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/5%20-%20incomp%20case%201%20rtl%20sim.JPG?raw=true)
 
 
-yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> read_verilog incomp_case.v
-  yosys> synth -top tb_incomp_case
-  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> show
 
-  pi of yosys show
+This design has 2 bit select line.
 
+ - When sel 00, y folows i0
+ - When sel 01, follows i1
+ - When sel 10 or 11
+   - y latches to the value it had before
 
-------------------------------------------------
-
-
-case with default
+Synthesizing the design;
 
 
-differences with earlier case
+     yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+     yosys> read_verilog incomp_case.v
+     yosys> synth -top tb_incomp_case
+     yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+     yosys> show
 
-no latch, 
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/6%20-%20incomp%20case%20yosys.JPG?raw=true)
 
 
-pic or rtl
+We can see the latch at the end.
 
-synth
+<br>
 
-at synth no latches inferred unllike before
+### Lab: Complete Case
 
-yosys pic
+Below we see the same implementation using a default case; The latch disappears.
 
-unlike before, no latches
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/7%20-%20comp%20case%20rtl.JPG?raw=true)
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/8%20-%20comp%20case%20yosys.JPG?raw=true)
+
+
+
 
 
 
 ---------------------------------------------------
 
 
-partial assignment case
+### Lab: Partial assignment case
 
 
-in case of partial assignment, we will encounter a latch as well
+in case of partial assignment, we will encounter a latch as well. The synthesizer doesn't know what to do, so it defaults to a latch.
 
-synth
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/9%20-%20partial%20case%20yosys.JPG?raw=true)
 
-synth top gives latch
 
 
 -------------------------------------------------
 
 
-bad case, overlapping cases
+### Lab: Overlapping cases
 
 
-whenever 11, latches, tool gets confused
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/10%20bad%20case%20-%20rtl.JPG?raw=true)
 
 
 
+Here, we can see that whenever select is equal to 2'b11, the tool becomes confused.
 
-synth 
-yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> read_verilog incomp_case.v
-  yosys> synth -top tb_incomp_case
-  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> write_verilog bad_case_net.v
+Synthesizing the design
 
-  do GLS
+
+     yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+     yosys> read_verilog incomp_case.v
+     yosys> synth -top tb_incomp_case
+     yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+     yosys> write_verilog -noattr bad_case_net.v
+
+
+Performing GLS:
 
     iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky_fd_sc_hd.v bad_case_net.v tb_bad_case.v
-  ./a.out
-  gtkwave tb_bad_case.vcd
+    ./a.out
+    gtkwave tb_bad_case.vcd
+    
 
-  pic of bad case vcd
-
-
-  --------------------------------------------------------------
-
-
-  for loops
-
-  looping constructs
-
-  for loop /evaluating expressions
-
-
-  generate   //outside always
-  	for loop //shouldn't / couldnt be used inside always
-
-  	used for instantiating h/w
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/11%20-%20bad%20case%20gls.JPG?raw=true)
 
 
 
-
-module mux_generate (input i0 , input i1, input i2 , input i3 , input [1:0] sel  , output reg y);
-wire [3:0] i_int;
-assign i_int = {i3,i2,i1,i0};
-integer k;
-always @ (*)
-begin
-for(k = 0; k < 4; k=k+1) begin
-	if(k == sel)
-		y = i_int[k];
-end
-end
-endmodule
+## For Loops
 
 
-This is a 4:1 mux.
+There are two For loop implementations, which offer distinct functionalities.
 
-i is a 4 bit bus.
+     for loop
 
-select is a 2 bit input
+The plain for loop is used for evaluating expressions.
 
-and k is an integer.
+     generate   
+  	   for loop 
+
+The above for loop is always outside the always block, and should not/cannot be used inside an always block.<br>It's purpose is to instantiate hardware.
+
+
+
+
+Below we have a mux that has been coded with a for loop:
+
+    module mux_generate (input i0 , input i1, input i2 , input i3 , input [1:0] sel  , output reg y);
+     wire [3:0] i_int;
+     assign i_int = {i3,i2,i1,i0};
+     integer k;
+      always @ (*)
+       begin
+        for(k = 0; k < 4; k=k+1) begin
+	     if(k == sel)
+		  y = i_int[k];
+         end
+        end
+     endmodule
+
+
+This is a 4:1 mux, and i is a 4 bit bus. Select is a 2 bit input, and k is an integer.
 
 every time a signal changes, if the integer held in k matches the two bit input in select, 
 
-whatever the value of select is, the corresponding input is selected as an output
-
-rtl sim
-
-
-iverilog mux_generate.v tb_mux_generate.v
-./a.out
-gtkwave tb_mux_generate.vcd
-
-pic of rtl sim
-
-typical 4:1 mux operation
+whatever the value of select is, the corresponding input is selected as an output.
 
 
 
-why write it this way? why not write it with a case statement?
-
-answer; it scales very badly; for a 256 mux you need to type out 256 cases, BY HAND.
-
-whereas, with that for loop, you only need to change 1 number
+Running an RTL Simulation;
 
 
-synth
+    iverilog mux_generate.v tb_mux_generate.v
+    ./a.out
+    gtkwave tb_mux_generate.vcd
 
 
-yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> read_verilog mux_generate.v
-  yosys> synth -top mux_generate
-  yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-  yosys> show
-  yosys> write_verilog -noattr mux_generate_net.v
-
-pic of yosys sim
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/12%20-%20mux_gen%20rtl%20sim.JPG?raw=true)
 
 
-  gls
 
-   iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky_fd_sc_hd.v mux_generate_net.v tb_mux_generate.v
-  ./a.out
-  gtkwave tb_mux_generate.vcd
+ - Why write it this way? 
+ - Why not write it with a case statement?
+
+It scales very badly; for a 256 mux you need to type out 256 cases, BY HAND. Whereas, with that for loop, you only need to change 1 number.
+
+    yosys> read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> read_verilog mux_generate.v
+    yosys> synth -top mux_generate
+    yosys> abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    yosys> show
+    yosys> write_verilog -noattr mux_generate_net.v
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/13%20-%20mux%20gen%20yosys.JPG?raw=true)
+
+Performing GLS:
+
+     iverilog ../my_lib/verilog_model/primitives.v ../my_lib/verilog_model/sky_fd_sc_hd.v mux_generate_net.v tb_mux_generate.v
+     ./a.out
+     gtkwave tb_mux_generate.vcd
+     
+     
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/14%20-%20mux%20generate%20gls.JPG?raw=true)
 ------------------------------------------------------------
 
 	
-example 2
+### Lab - Demux using a case statement
+
+The function of a demultiplexer:
+
+ - All outputs are 0
+ - One input
+ - Depending on the select, one of the outputs will follow input
 
 
 
-demux
-
-func
-
-all outputs are 0
-we have an input
-depending on the select, one of the outputs will follow input
-
-
-
-module demux_case (output o0 , output o1, output o2 , output o3, output o4, output o5, output o6 , output o7 , input [2:0] sel  , input i);
-reg [7:0]y_int;
-assign {o7,o6,o5,o4,o3,o2,o1,o0} = y_int;
-integer k;
-always @ (*)
-begin
-y_int = 8'b0;
-	case(sel)
-		3'b000 : y_int[0] = i;
-		3'b001 : y_int[1] = i;
-		3'b010 : y_int[2] = i;
-		3'b011 : y_int[3] = i;
-		3'b100 : y_int[4] = i;
-		3'b101 : y_int[5] = i;
-		3'b110 : y_int[6] = i;
-		3'b111 : y_int[7] = i;
-	endcase
-
-end
-endmodule
+     module demux_case (output o0 , output o1, output o2 , output o3, output o4, output o5, output o6 , output o7 , input [2:0] sel  , input i);
+     reg [7:0]y_int;
+     assign {o7,o6,o5,o4,o3,o2,o1,o0} = y_int;
+     integer k;
+     always @ (*)
+      begin
+      y_int = 8'b0;
+	    case(sel)
+		  3'b000 : y_int[0] = i;
+		  3'b001 : y_int[1] = i;
+		  3'b010 : y_int[2] = i;
+		  3'b011 : y_int[3] = i;
+		  3'b100 : y_int[4] = i;
+		  3'b101 : y_int[5] = i;
+		  3'b110 : y_int[6] = i;
+		  3'b111 : y_int[7] = i;
+	    endcase
+      end
+    endmodule
 
 
-all outputs are assigned 0 to avoid inferred latches
+Important to note: all outputs are assigned 0 to avoid inferred latches.
 
-rtl sim
+Below is the RTL Simulation:
 
-iverilog demux_case.v tb_demux_case.v
-./a.out
-gtkwave tb_demux_case.vcd
-
-pic of tb demux case
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/15%20-%20demux%20case%20rtl.JPG?raw=true)
 
 
 
 
 
+Below we have a demux coded with a for loop
+Important to note: all outputs are assigned 0 to avoid inferred latches.
 
 
-module demux_generate (output o0 , output o1, output o2 , output o3, output o4, output o5, output o6 , output o7 , input [2:0] sel  , input i);
-reg [7:0]y_int;
-assign {o7,o6,o5,o4,o3,o2,o1,o0} = y_int;
-integer k;
-always @ (*)
-begin
-y_int = 8'b0;
-for(k = 0; k < 8; k++) begin
-	if(k == sel)
-		y_int[k] = i;
-end
-end
-endmodule
+    module demux_generate (output o0 , output o1, output o2 , output o3, output o4, output o5, output o6 ,     output o7 , input [2:0] sel  , input i);
+    reg [7:0]y_int;
+    assign {o7,o6,o5,o4,o3,o2,o1,o0} = y_int;
+    integer k;
+    always @ (*)
+     begin
+      y_int = 8'b0;
+      for(k = 0; k < 8; k++) begin
+	    if(k == sel)
+		 y_int[k] = i;
+        end
+       end
+     endmodule
 
 
-rtl sim
+It's corresponding RTL simulation;
 
-iverilog demux_generate.v tb_demux_case.v
-./a.out
-gtkwave tb_demux_generate.vcd
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/16%20-%20demux%20generate%20rtl.JPG?raw=true)
 
-pic of tb demux generate
+
+
+Comparing these two pictures, we see that the functionality is identical. It further goes to highlight the scalability issue between the two approaches.
 
 -----------------------------------
 
-full adder
+### Lab: Ripple Carry Adder - For Generate
 
 
 
-ripple carry adder
+If we need to add two numbers, we use a RCA.
 
-say i hae to add 2 numbers
+A RCA needs x full adders in order to process x bit numbers. These full adders are chained together.
 
-
-inputs a b
-assume 4 bit numbers
-
-a rca needs x full adders in order to process x bit numbers
-
-full adders are chained together
-
-using case statement, you wil have to instantiate and connect x instances by hand
-
-not efficient
-
-use for generate
-
-instantiate 1 full adder
-
-replicate 32 times
+By using the case statement, we will have to instantiate and connect x instances by hand,  <br/>which is not efficient, so we use For Generate loops.By instantiating 1 full adder, we can replicate <br/>
+as many times as we need.
 
 
 
 
-module rca (input [7:0] num1 , input [7:0] num2 , output [8:0] sum);
-wire [7:0] int_sum;
-wire [7:0]int_co;
+    module rca (input [7:0] num1 , input [7:0] num2 , output [8:0] sum);
+     wire [7:0] int_sum;
+     wire [7:0]int_co;
 
-genvar i;
-generate
-	for (i = 1 ; i < 8; i=i+1) begin
+     genvar i;
+     generate
+	  for (i = 1 ; i < 8; i=i+1) begin
 		fa u_fa_1 (.a(num1[i]),.b(num2[i]),.c(int_co[i-1]),.co(int_co[i]),.sum(int_sum[i]));
-	end
-
-endgenerate
-fa u_fa_0 (.a(num1[0]),.b(num2[0]),.c(1'b0),.co(int_co[0]),.sum(int_sum[0]));
-
-
-assign sum[7:0] = int_sum;
-assign sum[8] = int_co[7];
-endmodule
+	  end
+     endgenerate
+        fa u_fa_0 (.a(num1[0]),.b(num2[0]),.c(1'b0),.co(int_co[0]),.sum(int_sum[0]));
+        assign sum[7:0] = int_sum;
+        assign sum[8] = int_co[7];
+    endmodule
 
 
 
-above, assuming 2 8bit numbers
-pay attention to the for block inside the generate enclosure, the way the index is coded causes the instances to connect to each other
+The above describes a 8-bit RCA.
+
+In the for block inside the generate enclosure, the way the index is coded causes the instances to connect to each other. It's a more elegant design.
+
+
+Trying to simulate the RCA with its test bench will cause iVerilog to complain, as the full adder instantiation is in a different file, so we have to call it too, like we did with the primitives earlier.
+
+
+    iverilog fa.v rca.v tb_rca.v
+    ./a.out
+    ./gtkwave 
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/17%20-%20ripple%20carry%20adder%20rtl%20sim.JPG?raw=true)
 
 
 
+Synthesizing it;
+
+    read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    read_verilog rca.v fa.v
+    synth -top rca
+    abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
+    write_verilog rca_net.v
 
 
-for case statement demux, 1x256 demux would require multiple hand written cases.
+Yosys synthesis of the RCA:
 
 
-try to iverilog rca with its test bench will complain, as the instantiation is in a different file, so we have to call it too
-
-just like we did with primitives earlier
-
-iverilog fa.v rca.v tb_rca.v
-./a.out
-./gtkwave 
-
-
-
-synth
-
-read_liberty -lib ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-read_verilog rca.v fa.v
-synth -top rca
-abc -liberty ../my_lib/lib/sky130_fd_sc_hd__tt_025C_1v80.lib
-write_verilog rca_net.v
-
-
-pics of rca
-pics of fa
-
-gls
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/18%20-%20rca%20yosys.JPG?raw=true)
 
 
 
+Yosys Synthesis of the Full Adder:
 
-   iverilog fa.v rca.v
-  ./a.out
-   gtkwave tb_rca.vcd
-
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/19%20-%20fa%20yosys.JPG?raw=true)
 
 
+
+Performing GLS:
+
+    iverilog fa.v rca.v
+    ./a.out
+    gtkwave tb_rca.vcd
+
+
+![alt text](https://github.com/VictorySpecificationII/Sky130-VLSI-Workshop/blob/master/Images/Day5/20%20-%20rca%20net%20gls.JPG?raw=true)
+
+
+--------
 
 
 # Acknowledgements
@@ -1397,10 +1355,3 @@ gls
  - Kunal Ghosh
  - VSD-IAT
  
-
-
-
-
-
-
-
